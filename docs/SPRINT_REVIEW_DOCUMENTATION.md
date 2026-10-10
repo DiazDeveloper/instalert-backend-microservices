@@ -123,8 +123,9 @@ La respuesta 403 confirma que el servicio reconoce la sesión, pero rechaza la o
 
 ## Repositorio y commits de documentación
 
-- URL del repositorio de Web Services: [PENDIENTE: URL real del repositorio del equipo].
-- Commit del contrato OpenAPI: [PENDIENTE: SHA real después de subir services/ms-account/openapi.json].
-- Commit de Swagger y guía local: [PENDIENTE: SHA real después de subir scripts/serve_account_docs.py y docs/SWAGGER_LOCAL.md].
+| Repository | Branch | Commit Id | Commit Message | Commit Message Body | Committed on (Date, America/Lima) |
+|---|---|---|---|---|---|
+| [DiazDeveloper/instalert-backend-microservices](https://github.com/DiazDeveloper/instalert-backend-microservices) | feature/account-documentation | [aabba06](https://github.com/DiazDeveloper/instalert-backend-microservices/commit/aabba06d79c285603672b2e131218d98d4e4b412) | docs(account): document OpenAPI contract Swagger and migration | Version the local Sprint documentation, implemented scope, validation instructions and known limitations. Documentation describes Account extraction and retains the other three contexts as existing functionality. | 09/10/2026 21:58 |
+| [DiazDeveloper/instalert-frontend-microservices](https://github.com/DiazDeveloper/instalert-frontend-microservices) | feature/account-documentation | [2fc07de](https://github.com/DiazDeveloper/instalert-frontend-microservices/commit/2fc07de67bea9962306f53efcab1a2e62fe12d5e) | docs(account): document Account migration and frontend validation | Version the local Sprint documentation, implemented scope, validation instructions and known limitations. Documentation describes Account extraction and retains the other three contexts as existing functionality. | 09/10/2026 21:58 |
 
-Si un único commit incluye ambos cambios, indicar el mismo SHA y describir su alcance. La copia local revisada no contiene .git; no se han creado commits ni se pueden verificar hashes desde esta carpeta. No usar hashes inventados ni un repositorio antiguo como evidencia de cambios que aún no se han publicado.
+El contrato backend, Swagger local y sus guías están incluidos en el commit backend indicado. Los hashes son reales y se generaron durante la importación inicial de este Sprint.
