@@ -1,0 +1,1009 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "InstAlert — Microservicio Account",
+    "version": "1.0.0",
+    "description": "Documentación del Sprint Account. Registro, autenticación JWT, perfiles y autorización. Los demás contextos permanecen en el monolito. Las cuentas nuevas reciben ROLE_USER; las operaciones administrativas requieren ROLE_ADMIN. Todos los cuerpos rechazan propiedades desconocidas."
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/authentication/sign-up": {
+      "post": {
+        "summary": "Registrar cuenta",
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                },
+                "example": {
+                  "accountId": "11111111-1111-4111-8111-111111111111",
+                  "email": "swagger.sprint@example.com",
+                  "token": "JWT_EMITIDO_POR_EL_SERVICIO",
+                  "profile": {
+                    "id": 1,
+                    "accountId": "11111111-1111-4111-8111-111111111111",
+                    "name": "Usuario Sprint",
+                    "email": "swagger.sprint@example.com",
+                    "role": "Ciudadano verificado",
+                    "roles": [
+                      "ROLE_USER"
+                    ],
+                    "currentLocation": "",
+                    "avatar": "",
+                    "phone": "999888777",
+                    "birthDate": "2000-05-15",
+                    "gender": "Masculino"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: JSON, validación de campos, fecha, rol o contraseña actual incorrectos según la operación."
+          },
+          "409": {
+            "description": "Correo ya registrado o conflicto de integridad/concurrencia según la operación."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Registration"
+              }
+            }
+          }
+        },
+        "security": [],
+        "tags": [
+          "Autenticación"
+        ],
+        "description": "Acceso público. Crea identidad, perfil y asociación UUID en una única transacción. Asigna ROLE_USER; no acepta roles enviados por el cliente.",
+        "operationId": "post_authentication_sign_up"
+      }
+    },
+    "/authentication/sign-in": {
+      "post": {
+        "summary": "Iniciar sesión",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                },
+                "example": {
+                  "accountId": "11111111-1111-4111-8111-111111111111",
+                  "email": "swagger.sprint@example.com",
+                  "token": "JWT_EMITIDO_POR_EL_SERVICIO",
+                  "profile": {
+                    "id": 1,
+                    "accountId": "11111111-1111-4111-8111-111111111111",
+                    "name": "Usuario Sprint",
+                    "email": "swagger.sprint@example.com",
+                    "role": "Ciudadano verificado",
+                    "roles": [
+                      "ROLE_USER"
+                    ],
+                    "currentLocation": "",
+                    "avatar": "",
+                    "phone": "999888777",
+                    "birthDate": "2000-05-15",
+                    "gender": "Masculino"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: JSON, validación de campos, fecha, rol o contraseña actual incorrectos según la operación."
+          },
+          "401": {
+            "description": "Credenciales incorrectas o sesión ausente, inválida, expirada o revocada."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Credentials"
+              }
+            }
+          }
+        },
+        "security": [],
+        "tags": [
+          "Autenticación"
+        ],
+        "description": "Acceso público. Valida correo y contraseña. Devuelve JWT y perfil. Las cuentas desactivadas no pueden iniciar sesión.",
+        "operationId": "post_authentication_sign_in"
+      }
+    },
+    "/account/me": {
+      "get": {
+        "summary": "Consultar mi perfil",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                },
+                "example": {
+                  "id": 1,
+                  "accountId": "11111111-1111-4111-8111-111111111111",
+                  "name": "Usuario Sprint",
+                  "email": "swagger.sprint@example.com",
+                  "role": "Ciudadano verificado",
+                  "roles": [
+                    "ROLE_USER"
+                  ],
+                  "currentLocation": "",
+                  "avatar": "",
+                  "phone": "999888777",
+                  "birthDate": "2000-05-15",
+                  "gender": "Masculino"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales incorrectas o sesión ausente, inválida, expirada o revocada."
+          },
+          "503": {
+            "description": "No se puede validar la sesión porque la persistencia de Account no está disponible."
+          }
+        },
+        "tags": [
+          "Account"
+        ],
+        "description": "Requiere Bearer JWT válido. Devuelve el perfil de la cuenta autenticada.",
+        "operationId": "get_account_me"
+      }
+    },
+    "/account/session": {
+      "get": {
+        "summary": "Consultar sesión actual",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Principal"
+                },
+                "example": {
+                  "accountId": "11111111-1111-4111-8111-111111111111",
+                  "referenceId": 1,
+                  "roles": [
+                    "ROLE_USER"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales incorrectas o sesión ausente, inválida, expirada o revocada."
+          },
+          "503": {
+            "description": "No se puede validar la sesión porque la persistencia de Account no está disponible."
+          }
+        },
+        "tags": [
+          "Account"
+        ],
+        "description": "Requiere JWT. Devuelve UUID, referencia numérica del perfil y roles actuales para integrar otros contextos.",
+        "operationId": "get_account_session"
+      }
+    },
+    "/account/directory": {
+      "get": {
+        "summary": "Consultar directorio básico",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DirectoryEntry"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 1,
+                    "accountId": "11111111-1111-4111-8111-111111111111",
+                    "name": "Usuario Sprint",
+                    "avatar": ""
+                  }
+                ]
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales incorrectas o sesión ausente, inválida, expirada o revocada."
+          },
+          "503": {
+            "description": "No se puede validar la sesión porque la persistencia de Account no está disponible."
+          }
+        },
+        "tags": [
+          "Account"
+        ],
+        "description": "Requiere JWT. Lista cuentas activas sin correo, teléfono, fecha de nacimiento, ubicación ni roles.",
+        "operationId": "get_account_directory"
+      }
+    },
+    "/account/count": {
+      "get": {
+        "summary": "Contar cuentas activas",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Count"
+                },
+                "example": {
+                  "count": 3
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales incorrectas o sesión ausente, inválida, expirada o revocada."
+          },
+          "503": {
+            "description": "No se puede validar la sesión porque la persistencia de Account no está disponible."
+          }
+        },
+        "tags": [
+          "Account"
+        ],
+        "description": "Requiere JWT. Devuelve el total de cuentas activas en el campo count.",
+        "operationId": "get_account_count"
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "Listar perfiles completos",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Profile"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 1,
+                    "accountId": "11111111-1111-4111-8111-111111111111",
+                    "name": "Usuario Sprint",
+                    "email": "swagger.sprint@example.com",
+                    "role": "Ciudadano verificado",
+                    "roles": [
+                      "ROLE_USER"
+                    ],
+                    "currentLocation": "",
+                    "avatar": "",
+                    "phone": "999888777",
+                    "birthDate": "2000-05-15",
+                    "gender": "Masculino"
+                  }
+                ]
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales incorrectas o sesión ausente, inválida, expirada o revocada."
+          },
+          "403": {
+            "description": "Sesión válida, pero sin permisos para esta operación o cuenta."
+          },
+          "503": {
+            "description": "No se puede validar la sesión porque la persistencia de Account no está disponible."
+          }
+        },
+        "tags": [
+          "Administración"
+        ],
+        "description": "Requiere ROLE_ADMIN. Un ciudadano autenticado recibe 403.",
+        "operationId": "get_users"
+      }
+    },
+    "/users/{accountId}": {
+      "parameters": [
+        {
+          "name": "accountId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "UUID accountId de la cuenta objetivo; no utilizar profile.id.",
+          "example": "11111111-1111-4111-8111-111111111111"
+        }
+      ],
+      "get": {
+        "summary": "Consultar perfil por UUID",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                },
+                "example": {
+                  "id": 1,
+                  "accountId": "11111111-1111-4111-8111-111111111111",
+                  "name": "Usuario Sprint",
+                  "email": "swagger.sprint@example.com",
+                  "role": "Ciudadano verificado",
+                  "roles": [
+                    "ROLE_USER"
+                  ],
+                  "currentLocation": "",
+                  "avatar": "",
+                  "phone": "999888777",
+                  "birthDate": "2000-05-15",
+                  "gender": "Masculino"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales incorrectas o sesión ausente, inválida, expirada o revocada."
+          },
+          "403": {
+            "description": "Sesión válida, pero sin permisos para esta operación o cuenta."
+          },
+          "404": {
+            "description": "Cuenta activa no encontrada."
+          },
+          "503": {
+            "description": "No se puede validar la sesión porque la persistencia de Account no está disponible."
+          }
+        },
+        "tags": [
+          "Perfiles"
+        ],
+        "description": "Acceso al propietario o a ROLE_ADMIN. id es el UUID accountId, no el id numérico del perfil.",
+        "operationId": "get_users_accountId"
+      },
+      "put": {
+        "summary": "Actualizar perfil",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                },
+                "example": {
+                  "id": 1,
+                  "accountId": "11111111-1111-4111-8111-111111111111",
+                  "name": "Usuario Sprint",
+                  "email": "swagger.sprint@example.com",
+                  "role": "Ciudadano verificado",
+                  "roles": [
+                    "ROLE_USER"
+                  ],
+                  "currentLocation": "",
+                  "avatar": "",
+                  "phone": "999888777",
+                  "birthDate": "2000-05-15",
+                  "gender": "Masculino"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: JSON, validación de campos, fecha, rol o contraseña actual incorrectos según la operación."
+          },
+          "401": {
+            "description": "Credenciales incorrectas o sesión ausente, inválida, expirada o revocada."
+          },
+          "403": {
+            "description": "Sesión válida, pero sin permisos para esta operación o cuenta."
+          },
+          "404": {
+            "description": "Cuenta activa no encontrada."
+          },
+          "409": {
+            "description": "Correo ya registrado o conflicto de integridad/concurrencia según la operación."
+          },
+          "503": {
+            "description": "No se puede validar la sesión porque la persistencia de Account no está disponible."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Update"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Perfiles"
+        ],
+        "description": "Acceso al propietario o a ROLE_ADMIN. email es obligatorio; no admite cambiar roles ni contraseña mediante este cuerpo.",
+        "operationId": "put_users_accountId"
+      },
+      "delete": {
+        "summary": "Desactivar cuenta",
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Credenciales incorrectas o sesión ausente, inválida, expirada o revocada."
+          },
+          "403": {
+            "description": "Sesión válida, pero sin permisos para esta operación o cuenta."
+          },
+          "404": {
+            "description": "Cuenta activa no encontrada."
+          },
+          "409": {
+            "description": "Correo ya registrado o conflicto de integridad/concurrencia según la operación."
+          },
+          "503": {
+            "description": "No se puede validar la sesión porque la persistencia de Account no está disponible."
+          }
+        },
+        "tags": [
+          "Administración"
+        ],
+        "description": "Requiere ROLE_ADMIN. Desactiva la identidad y revoca sus sesiones, conservando las referencias. Respuesta 204 sin cuerpo.",
+        "operationId": "delete_users_accountId"
+      }
+    },
+    "/users/{accountId}/role": {
+      "parameters": [
+        {
+          "name": "accountId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "UUID accountId de la cuenta objetivo; no utilizar profile.id.",
+          "example": "11111111-1111-4111-8111-111111111111"
+        }
+      ],
+      "put": {
+        "summary": "Cambiar rol",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                },
+                "example": {
+                  "id": 1,
+                  "accountId": "11111111-1111-4111-8111-111111111111",
+                  "name": "Usuario Sprint",
+                  "email": "swagger.sprint@example.com",
+                  "role": "Ciudadano verificado",
+                  "roles": [
+                    "ROLE_USER"
+                  ],
+                  "currentLocation": "",
+                  "avatar": "",
+                  "phone": "999888777",
+                  "birthDate": "2000-05-15",
+                  "gender": "Masculino"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: JSON, validación de campos, fecha, rol o contraseña actual incorrectos según la operación."
+          },
+          "401": {
+            "description": "Credenciales incorrectas o sesión ausente, inválida, expirada o revocada."
+          },
+          "403": {
+            "description": "Sesión válida, pero sin permisos para esta operación o cuenta."
+          },
+          "404": {
+            "description": "Cuenta activa no encontrada."
+          },
+          "409": {
+            "description": "Correo ya registrado o conflicto de integridad/concurrencia según la operación."
+          },
+          "503": {
+            "description": "No se puede validar la sesión porque la persistencia de Account no está disponible."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleChange"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Administración"
+        ],
+        "description": "Requiere ROLE_ADMIN. Acepta ROLE_USER o ROLE_ADMIN (también los alias descritos en el schema). Revoca las sesiones de la cuenta modificada.",
+        "operationId": "put_users_accountId_role"
+      }
+    },
+    "/authentication/{accountId}/change-password": {
+      "parameters": [
+        {
+          "name": "accountId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "UUID accountId de la cuenta objetivo; no utilizar profile.id.",
+          "example": "11111111-1111-4111-8111-111111111111"
+        }
+      ],
+      "post": {
+        "summary": "Cambiar mi contraseña",
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Solicitud inválida: JSON, validación de campos, fecha, rol o contraseña actual incorrectos según la operación."
+          },
+          "401": {
+            "description": "Credenciales incorrectas o sesión ausente, inválida, expirada o revocada."
+          },
+          "403": {
+            "description": "Sesión válida, pero sin permisos para esta operación o cuenta."
+          },
+          "404": {
+            "description": "Cuenta activa no encontrada."
+          },
+          "409": {
+            "description": "Correo ya registrado o conflicto de integridad/concurrencia según la operación."
+          },
+          "503": {
+            "description": "No se puede validar la sesión porque la persistencia de Account no está disponible."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChange"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Autenticación"
+        ],
+        "description": "Solo el propietario, incluso si quien llama es administrador. Valida currentPassword, actualiza el hash BCrypt y revoca sesiones anteriores. Respuesta 204 sin cuerpo.",
+        "operationId": "post_authentication_accountId_change_password"
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Registration": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "email",
+          "password"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72,
+            "description": "Maximum 72 UTF-8 bytes"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "birthDate": {
+            "type": "string",
+            "description": "Past ISO date or empty string"
+          },
+          "gender": {
+            "type": "string",
+            "maxLength": 40
+          }
+        },
+        "example": {
+          "name": "Usuario Sprint",
+          "email": "swagger.sprint@example.com",
+          "password": "SwaggerSprint2026!",
+          "phone": "999888777",
+          "birthDate": "2000-05-15",
+          "gender": "Masculino"
+        }
+      },
+      "Credentials": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 72
+          }
+        },
+        "example": {
+          "email": "swagger.sprint@example.com",
+          "password": "SwaggerSprint2026!"
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "accountId",
+          "name",
+          "email",
+          "role",
+          "roles",
+          "currentLocation",
+          "avatar",
+          "phone",
+          "birthDate",
+          "gender"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Transitional profile reference; never the IAM ID"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "role": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ROLE_USER",
+                "ROLE_ADMIN"
+              ]
+            }
+          },
+          "currentLocation": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "gender": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "id": 1,
+          "accountId": "11111111-1111-4111-8111-111111111111",
+          "name": "Usuario Sprint",
+          "email": "swagger.sprint@example.com",
+          "role": "Ciudadano verificado",
+          "roles": [
+            "ROLE_USER"
+          ],
+          "currentLocation": "",
+          "avatar": "",
+          "phone": "999888777",
+          "birthDate": "2000-05-15",
+          "gender": "Masculino"
+        }
+      },
+      "Session": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "accountId",
+          "email",
+          "token",
+          "profile"
+        ],
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "token": {
+            "type": "string"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/Profile"
+          }
+        },
+        "example": {
+          "accountId": "11111111-1111-4111-8111-111111111111",
+          "email": "swagger.sprint@example.com",
+          "token": "JWT_EMITIDO_POR_EL_SERVICIO",
+          "profile": {
+            "id": 1,
+            "accountId": "11111111-1111-4111-8111-111111111111",
+            "name": "Usuario Sprint",
+            "email": "swagger.sprint@example.com",
+            "role": "Ciudadano verificado",
+            "roles": [
+              "ROLE_USER"
+            ],
+            "currentLocation": "",
+            "avatar": "",
+            "phone": "999888777",
+            "birthDate": "2000-05-15",
+            "gender": "Masculino"
+          }
+        }
+      },
+      "Update": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "email"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "birthDate": {
+            "type": "string",
+            "description": "Past ISO date or empty string"
+          },
+          "gender": {
+            "type": "string",
+            "maxLength": 40
+          }
+        },
+        "example": {
+          "name": "Usuario Sprint Actualizado",
+          "email": "swagger.sprint@example.com",
+          "phone": "988777666",
+          "birthDate": "2000-05-15",
+          "gender": "Masculino"
+        }
+      },
+      "PasswordChange": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ],
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 72
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          }
+        },
+        "example": {
+          "currentPassword": "SwaggerSprint2026!",
+          "newPassword": "SwaggerSprint2027!"
+        }
+      },
+      "RoleChange": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role"
+        ],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "ROLE_ADMIN",
+              "ROLE_USER",
+              "Admin",
+              "Ciudadano verificado"
+            ]
+          }
+        },
+        "example": {
+          "role": "ROLE_USER"
+        }
+      },
+      "Principal": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "accountId",
+          "referenceId",
+          "roles"
+        ],
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "referenceId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "example": {
+          "accountId": "11111111-1111-4111-8111-111111111111",
+          "referenceId": 1,
+          "roles": [
+            "ROLE_USER"
+          ]
+        }
+      },
+      "DirectoryEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "accountId",
+          "name",
+          "avatar"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Transitional profile reference; never the IAM ID"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "id": 1,
+          "accountId": "11111111-1111-4111-8111-111111111111",
+          "name": "Usuario Sprint",
+          "avatar": ""
+        }
+      },
+      "Count": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "example": {
+          "count": 3
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Autenticación"
+    },
+    {
+      "name": "Account"
+    },
+    {
+      "name": "Perfiles"
+    },
+    {
+      "name": "Administración"
+    }
+  ]
+}
