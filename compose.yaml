@@ -1,0 +1,63 @@
+services:
+  account-db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: instalert_account
+      MYSQL_USER: account_app
+      MYSQL_PASSWORD: ${ACCOUNT_DB_PASSWORD:?Set ACCOUNT_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${ACCOUNT_DB_ROOT_PASSWORD:?Set ACCOUNT_DB_ROOT_PASSWORD}
+    volumes: [account-data:/var/lib/mysql]
+    healthcheck:
+      test: [CMD-SHELL, 'mysqladmin ping -h localhost --silent']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+  monolith-db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: instalert_db
+      MYSQL_USER: monolith_app
+      MYSQL_PASSWORD: ${MONOLITH_DB_PASSWORD:?Set MONOLITH_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MONOLITH_DB_ROOT_PASSWORD:?Set MONOLITH_DB_ROOT_PASSWORD}
+    volumes:
+      - monolith-data:/var/lib/mysql
+      - ./infrastructure/bootstrap-monolith.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, 'mysqladmin ping -h localhost --silent']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+  ms-account:
+    build: {context: ., dockerfile: services/ms-account/Dockerfile}
+    environment:
+      ACCOUNT_DB_URL: jdbc:mysql://account-db:3306/instalert_account
+      ACCOUNT_DB_USER: account_app
+      ACCOUNT_DB_PASSWORD: ${ACCOUNT_DB_PASSWORD}
+      ACCOUNT_JWT_SECRET: ${ACCOUNT_JWT_SECRET:?Set a Base64 key with at least 32 random bytes}
+      ACCOUNT_CORS_ORIGINS: http://localhost:4200
+    depends_on:
+      account-db: {condition: service_healthy}
+  monolith:
+    build: {context: ., dockerfile: Dockerfile}
+    environment:
+      MONOLITH_DB_URL: jdbc:mysql://monolith-db:3306/instalert_db
+      MONOLITH_DB_USER: monolith_app
+      MONOLITH_DB_PASSWORD: ${MONOLITH_DB_PASSWORD}
+      ACCOUNT_SERVICE_URL: http://ms-account:8081
+    depends_on:
+      monolith-db: {condition: service_healthy}
+      ms-account: {condition: service_started}
+  api-gateway:
+    build: {context: ., dockerfile: services/api-gateway/Dockerfile}
+    ports: [127.0.0.1:8080:8080]
+    environment:
+      ACCOUNT_SERVICE_URL: http://ms-account:8081
+      MONOLITH_SERVICE_URL: http://monolith:8082
+    depends_on: [ms-account, monolith]
+  frontend:
+    build: {context: ../../Instalert-FrontEnd-main/Instalert-FrontEnd-main}
+    ports: [127.0.0.1:4200:80]
+    depends_on: [api-gateway]
+volumes:
+  account-data:
+  monolith-data:
