@@ -41,7 +41,7 @@ class MonolithAccountIntegrationTest {
     @Autowired ApplicationContext context;
     @Test void ownsOnlyRemainingContextEntitiesAndNoIamServices() {
         var names=emf.getMetamodel().getEntities().stream().map(e->e.getJavaType().getName()).toList();
-        assertThat(names).hasSize(3).noneMatch(n->n.contains(".iam.") || n.contains(".profiles."));
+        assertThat(names).hasSize(2).noneMatch(n->n.contains(".iam.") || n.contains(".profiles.") || n.contains(".emergencies."));
         assertThat(context.getBeanNamesForType(com.instalert_backend.iam.application.commandservices.UserCommandService.class)).isEmpty();
     }
     @Test void resolvesSessionFromAccountAndRejectsLegacyRoutes() throws Exception {

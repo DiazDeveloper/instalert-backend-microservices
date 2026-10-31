@@ -27,19 +27,19 @@ class GatewayIntegrationTest {
             exchange.sendResponseHeaders(200,bytes.length); exchange.getResponseBody().write(bytes); exchange.close();
         });
         account.start(); monolith.start();
-        gateway=new GatewayController("http://127.0.0.1:"+account.getAddress().getPort(),"http://127.0.0.1:"+monolith.getAddress().getPort());
+        gateway=new GatewayController("http://127.0.0.1:"+account.getAddress().getPort(),"http://127.0.0.1:"+monolith.getAddress().getPort(),"http://127.0.0.1:"+account.getAddress().getPort());
     }
     @AfterEach void stop() { account.stop(0); monolith.stop(0); }
     MockHttpServletRequest request(String path) {
         var r=new MockHttpServletRequest("GET",path); r.addHeader("Authorization","Bearer test-token"); return r;
     }
     @Test void routesAccountAndRemainingContexts() {
-        for(var path:new String[]{"/api/v1/users","/api/v1/authentication/sign-in","/api/v1/account/me"}) {
+        for(var path:new String[]{"/api/v1/users","/api/v1/authentication/sign-in","/api/v1/account/me","/api/v1/emergencies"}) {
             var response=gateway.forward(request(path),null);
             assertThat(new String(response.getBody(),StandardCharsets.UTF_8)).startsWith("account:");
             assertThat(response.getHeaders().getFirst("X-Correlation-ID")).isNotBlank();
         }
-        for(var path:new String[]{"/api/v1/incidents","/api/v1/emergencies","/api/v1/communities"})
+        for(var path:new String[]{"/api/v1/incidents","/api/v1/communities"})
             assertThat(new String(gateway.forward(request(path),null).getBody(),StandardCharsets.UTF_8)).isEqualTo("monolith");
         assertThat(authorization.get()).isEqualTo("Bearer test-token");
     }
