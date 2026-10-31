@@ -8,6 +8,6 @@ public class GatewayCors implements WebMvcConfigurer {
     public GatewayCors(@Value("${gateway.cors-origins}") String origins) { this.origins=origins.split(","); }
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**").allowedOrigins(origins).allowedMethods("GET","POST","PUT","PATCH","DELETE","OPTIONS")
-            .allowedHeaders("Authorization","Content-Type","X-Correlation-ID").exposedHeaders("X-Correlation-ID");
+            .allowedHeaders("Authorization","Content-Type","X-Correlation-ID","Idempotency-Key").exposedHeaders("X-Correlation-ID","Idempotency-Replayed","Location");
     }
 }

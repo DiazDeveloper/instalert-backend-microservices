@@ -15,30 +15,33 @@ import java.util.regex.Pattern;
 /** Fixed Strangler routes, no user-controlled destination or forwarding of identity headers. */
 @RestController
 public class GatewayController {
-    private final RestClient account,monolith;
+    private final RestClient account,monolith,emergencies;
     private static final Pattern ACCOUNT=Pattern.compile("^/api/v1/(authentication|users|account)(/.*)?$");
-    private static final Pattern REMAINING=Pattern.compile("^/api/v1/(emergencies|incidents|communities)(/.*)?$");
-    private static final Set<String> RESPONSE_HEADERS=Set.of("Content-Type","Location","ETag","Cache-Control");
-    public GatewayController(@Value("${gateway.account-url}") String accountUrl,@Value("${gateway.monolith-url}") String monolithUrl) {
+    private static final Pattern REMAINING=Pattern.compile("^/api/v1/(incidents|communities)(/.*)?$");
+    private static final Set<String> RESPONSE_HEADERS=Set.of("Content-Type","Location","ETag","Cache-Control","Idempotency-Replayed");
+    public GatewayController(@Value("${gateway.account-url}") String accountUrl,@Value("${gateway.monolith-url}") String monolithUrl,@Value("${gateway.emergencies-url:http://localhost:8083}") String emergenciesUrl) {
         var factory=new JdkClientHttpRequestFactory(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).followRedirects(HttpClient.Redirect.NEVER).build());
         factory.setReadTimeout(Duration.ofSeconds(10));
         account=RestClient.builder().baseUrl(accountUrl).requestFactory(factory).build();
+        emergencies=RestClient.builder().baseUrl(emergenciesUrl).requestFactory(factory).build();
         monolith=RestClient.builder().baseUrl(monolithUrl).requestFactory(factory).build();
     }
     public static boolean routesToAccount(String path) { return ACCOUNT.matcher(path).matches(); }
     @RequestMapping("/api/v1/**")
     public ResponseEntity<byte[]> forward(HttpServletRequest request,@RequestBody(required=false) byte[] body) {
         var path=request.getRequestURI();
-        if(!routesToAccount(path) && !REMAINING.matcher(path).matches()) return ResponseEntity.notFound().build();
+        if(path.startsWith("/api/v1/communities/internal")) return ResponseEntity.notFound().build();
+        boolean isEmergency=path.equals("/api/v1/emergencies") || path.startsWith("/api/v1/emergencies/");
+        if(!routesToAccount(path) && !isEmergency && !REMAINING.matcher(path).matches()) return ResponseEntity.notFound().build();
         if(path.contains("..") || path.contains("\\") || path.contains("%")) return ResponseEntity.badRequest().build();
         String correlation=request.getHeader("X-Correlation-ID");
         if(correlation==null || !correlation.matches("[a-zA-Z0-9_-]{1,64}")) correlation=UUID.randomUUID().toString();
         final String correlationId=correlation;
         var uri=path+(request.getQueryString()==null?"":"?"+request.getQueryString());
         try {
-            var outgoing=(routesToAccount(path)?account:monolith).method(HttpMethod.valueOf(request.getMethod())).uri(uri)
+            var outgoing=(routesToAccount(path)?account:(isEmergency?emergencies:monolith)).method(HttpMethod.valueOf(request.getMethod())).uri(uri)
                 .header("X-Correlation-ID",correlationId);
-            for(String name:Set.of("Authorization","Content-Type","Accept")) {
+            for(String name:Set.of("Authorization","Content-Type","Accept","Idempotency-Key")) {
                 var value=request.getHeader(name); if(value!=null) outgoing.header(name,value);
             }
             if(body!=null && body.length>0) outgoing.body(body);

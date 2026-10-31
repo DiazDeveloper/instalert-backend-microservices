@@ -20,6 +20,19 @@ import java.util.ResourceBundle;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<?> conflict(org.springframework.dao.DataIntegrityViolationException ex) {
+        return ResponseEntity.status(409).build();
+    }
+    @ExceptionHandler({org.springframework.http.converter.HttpMessageNotReadableException.class,
+        org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class,
+        org.springframework.web.method.annotation.HandlerMethodValidationException.class})
+    public ResponseEntity<?> badInput(Exception ex) { return ResponseEntity.badRequest().build(); }
+
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<?> missingResource(org.springframework.web.servlet.resource.NoResourceFoundException exception) {
+        return ResponseEntity.notFound().build();
+    }
     @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
     public ResponseEntity<?> handleStatus(org.springframework.web.server.ResponseStatusException ex) {
         return ResponseEntity.status(ex.getStatusCode()).build();
