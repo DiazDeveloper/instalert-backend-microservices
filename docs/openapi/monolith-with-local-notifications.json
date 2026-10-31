@@ -1,0 +1,801 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8082",
+      "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Incidents",
+      "description": "Incident management endpoints"
+    },
+    {
+      "name": "Communities",
+      "description": "Endpoints para la gesti\u00f3n de juntas vecinales"
+    }
+  ],
+  "paths": {
+    "/api/v1/incidents/{incidentId}/status": {
+      "put": {
+        "tags": [
+          "Incidents"
+        ],
+        "summary": "Update incident status",
+        "description": "Updates the status of an existing incident report.",
+        "operationId": "updateIncidentStatus",
+        "parameters": [
+          {
+            "name": "incidentId",
+            "in": "path",
+            "description": "Incident unique identifier",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateIncidentStatusResource"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Incident status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Incident not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communities/notifications/{id}/read": {
+      "put": {
+        "tags": [
+          "notification-controller"
+        ],
+        "operationId": "read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/communities/notification-preferences": {
+      "get": {
+        "tags": [
+          "notification-controller"
+        ],
+        "operationId": "preference",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "notification-controller"
+        ],
+        "operationId": "preference_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Preference"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/communities/contacts/{id}/accept": {
+      "put": {
+        "tags": [
+          "notification-controller"
+        ],
+        "operationId": "accept",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/incidents": {
+      "get": {
+        "tags": [
+          "Incidents"
+        ],
+        "summary": "Get all incidents",
+        "description": "Retrieves a list of all incident reports in the system.",
+        "operationId": "getAllIncidents",
+        "responses": {
+          "200": {
+            "description": "Incidents found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Incidents"
+        ],
+        "summary": "Create a new incident",
+        "description": "Creates a new incident report with location and emergency information.",
+        "operationId": "createIncident",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIncidentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Incident created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communities": {
+      "get": {
+        "tags": [
+          "Communities"
+        ],
+        "operationId": "getAllCommunities",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommunityResource"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Communities"
+        ],
+        "operationId": "createCommunity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCommunityResource"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communities/contacts": {
+      "get": {
+        "tags": [
+          "notification-controller"
+        ],
+        "operationId": "contacts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "notification-controller"
+        ],
+        "operationId": "invite",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Invite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/incidents/{incidentId}": {
+      "get": {
+        "tags": [
+          "Incidents"
+        ],
+        "summary": "Get incident by ID",
+        "description": "Retrieves a specific incident report by unique identifier.",
+        "operationId": "getIncidentById",
+        "parameters": [
+          {
+            "name": "incidentId",
+            "in": "path",
+            "description": "Incident unique identifier",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Incident found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Incident not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Incidents"
+        ],
+        "summary": "Delete an incident",
+        "description": "Deletes an incident report by its unique identifier.",
+        "operationId": "deleteIncident",
+        "parameters": [
+          {
+            "name": "incidentId",
+            "in": "path",
+            "description": "Incident unique identifier",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Incident deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Incident not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communities/{communityId}": {
+      "get": {
+        "tags": [
+          "Communities"
+        ],
+        "operationId": "getCommunityById",
+        "parameters": [
+          {
+            "name": "communityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Communities"
+        ],
+        "operationId": "deleteCommunity",
+        "parameters": [
+          {
+            "name": "communityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communities/notifications": {
+      "get": {
+        "tags": [
+          "notification-controller"
+        ],
+        "operationId": "inbox",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "maximum": 10000,
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communities/contacts/{id}": {
+      "delete": {
+        "tags": [
+          "notification-controller"
+        ],
+        "operationId": "revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UpdateIncidentStatusResource": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "IncidentResponse": {
+        "type": "object",
+        "description": "Incident information response",
+        "example": {
+          "id": 1,
+          "userId": 101,
+          "type": "Robbery",
+          "severity": "HIGH",
+          "address": "Jr. Moquegua 240",
+          "description": "Two armed suspects assaulted a pedestrian",
+          "status": "ACTIVE",
+          "latitude": -12.121,
+          "longitude": -77.029,
+          "timeReported": "2025-05-20T14:32:00.000Z"
+        },
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Incident unique identifier",
+            "example": 1
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "User unique identifier",
+            "example": 101
+          },
+          "type": {
+            "type": "string",
+            "description": "Incident type",
+            "example": "Robbery"
+          },
+          "severity": {
+            "type": "string",
+            "description": "Incident severity level",
+            "example": "HIGH"
+          },
+          "address": {
+            "type": "string",
+            "description": "Incident address",
+            "example": "Jr. Moquegua 240"
+          },
+          "description": {
+            "type": "string",
+            "description": "Incident description",
+            "example": "Two armed suspects assaulted a pedestrian"
+          },
+          "status": {
+            "type": "string",
+            "description": "Incident current status",
+            "example": "ACTIVE"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "description": "Latitude coordinate",
+            "example": -12.121
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "description": "Longitude coordinate",
+            "example": -77.029
+          },
+          "timeReported": {
+            "type": "string",
+            "description": "Incident report timestamp",
+            "example": "2025-05-20T14:32:00.000Z"
+          }
+        }
+      },
+      "Preference": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "CreateIncidentRequest": {
+        "type": "object",
+        "description": "Request payload for creating a new incident report",
+        "example": {
+          "userId": 101,
+          "type": "Robbery",
+          "severity": "HIGH",
+          "address": "Jr. Moquegua 240",
+          "description": "Two armed suspects assaulted a pedestrian",
+          "status": "ACTIVE",
+          "latitude": -12.121,
+          "longitude": -77.029,
+          "timeReported": "2025-05-20T14:32:00.000Z"
+        },
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "User identifier",
+            "example": 101
+          },
+          "type": {
+            "type": "string",
+            "description": "Incident type",
+            "example": "Robbery",
+            "minLength": 1
+          },
+          "severity": {
+            "type": "string",
+            "description": "Incident severity level",
+            "example": "HIGH",
+            "minLength": 1
+          },
+          "address": {
+            "type": "string",
+            "description": "Incident address",
+            "example": "Jr. Moquegua 240",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "description": "Incident description",
+            "example": "Two armed suspects assaulted a pedestrian",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "description": "Incident status",
+            "example": "ACTIVE",
+            "minLength": 1
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "description": "Latitude coordinate",
+            "example": -12.121
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "description": "Longitude coordinate",
+            "example": -77.029
+          },
+          "timeReported": {
+            "type": "string",
+            "description": "Incident report timestamp",
+            "example": "2025-05-20T14:32:00.000Z",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "address",
+          "description",
+          "latitude",
+          "longitude",
+          "severity",
+          "status",
+          "timeReported",
+          "type",
+          "userId"
+        ]
+      },
+      "CreateCommunityResource": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre de la comunidad",
+            "example": "Vecinos Cuadra 5",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripci\u00f3n o reglas",
+            "example": "Grupo exclusivo de seguridad"
+          },
+          "isPrivate": {
+            "type": "boolean",
+            "description": "Si la comunidad es privada por invitaci\u00f3n",
+            "example": true
+          },
+          "ownerId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID del usuario que crea la comunidad",
+            "example": 1
+          }
+        },
+        "required": [
+          "name",
+          "ownerId"
+        ]
+      },
+      "Invite": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "accountId"
+        ]
+      },
+      "CommunityResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Identificador \u00fanico",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Nombre de la comunidad",
+            "example": "Vecinos Cuadra 5"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripci\u00f3n",
+            "example": "Grupo exclusivo de seguridad"
+          },
+          "isPrivate": {
+            "type": "boolean",
+            "description": "Si es privada",
+            "example": true
+          },
+          "ownerId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID del creador de la comunidad",
+            "example": 1
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "name": "bearerAuth",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
