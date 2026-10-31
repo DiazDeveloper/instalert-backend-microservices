@@ -1,0 +1,129 @@
+{
+  "info": {
+    "name": "InstAlert Emergencies — local",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Paste a fresh Account token into token. Create uses a retained key and timestamp for safe replay; clear requestKey and locationRecordedAt for a new alert."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "alertId",
+      "value": ""
+    },
+    {
+      "key": "requestKey",
+      "value": ""
+    },
+    {
+      "key": "locationRecordedAt",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Registrar alerta idempotente",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{requestKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/emergencies",
+        "description": "Owner is resolved from Account. Alert, request key and PENDING outbox event are committed together. Notifications are not delivered by this local increment.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"PANIC\",\n  \"latitude\": -12.0464,\n  \"longitude\": -77.0428,\n  \"accuracyM\": 15,\n  \"locationRecordedAt\": \"{{locationRecordedAt}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get(\"requestKey\")) { pm.collectionVariables.set(\"requestKey\", pm.variables.replaceIn(\"{{$guid}}\")); pm.collectionVariables.set(\"locationRecordedAt\", new Date().toISOString()); }"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if ([200, 201].includes(pm.response.code)) pm.collectionVariables.set(\"alertId\", pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consultar mi historial paginado",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/emergencies",
+        "description": "Returns only alerts owned by the authenticated account; received alerts are outside this increment. Dates use ISO-8601 UTC."
+      }
+    },
+    {
+      "name": "Consultar una alerta propia",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/emergencies/{{alertId}}",
+        "description": "Consultar una alerta propia"
+      }
+    },
+    {
+      "name": "Cancelar una alerta propia",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/emergencies/{{alertId}}",
+        "description": "Only ACTIVE to CANCELLED is supported. Repeated cancellation is safe and does not produce another event.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"CANCELLED\"}"
+        }
+      }
+    }
+  ]
+}
