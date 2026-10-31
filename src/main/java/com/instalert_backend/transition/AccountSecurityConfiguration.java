@@ -26,7 +26,8 @@ public class AccountSecurityConfiguration {
     public record AccountPrincipal(String accountId,long referenceId,List<String> roles) {}
     @Bean SecurityFilterChain accountSecurity(HttpSecurity http,
         @Value("${account.service.url:http://localhost:8081}") String accountUrl,
-        @Value("${app.cors.origins:http://localhost:4200}") String origins) throws Exception {
+        @Value("${app.cors.origins:http://localhost:4200}") String origins,
+        @Value("${notifications.internal-key:}") String internalKey) throws Exception {
         var factory=new SimpleClientHttpRequestFactory(); factory.setConnectTimeout(2000); factory.setReadTimeout(3000);
         var client=RestClient.builder().baseUrl(accountUrl).requestFactory(factory).build();
         var cors=new CorsConfiguration(); cors.setAllowedOrigins(Arrays.asList(origins.split(",")));
@@ -38,9 +39,16 @@ public class AccountSecurityConfiguration {
             .exceptionHandling(e->e.authenticationEntryPoint((req,res,ex)->res.sendError(401)).accessDeniedHandler((req,res,ex)->res.sendError(403)))
             .authorizeHttpRequests(a->a.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers("/api/v1/users/**","/api/v1/authentication/**","/api/v1/account/**").denyAll()
+                .requestMatchers("/api/v1/communities/internal/emergency-events").hasAuthority("SERVICE_EMERGENCIES")
                 .requestMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll().anyRequest().authenticated())
             .addFilterBefore(new OncePerRequestFilter() {
                 @Override protected void doFilterInternal(HttpServletRequest req,HttpServletResponse res,FilterChain chain) throws ServletException,IOException {
+                    if(req.getRequestURI().equals("/api/v1/communities/internal/emergency-events")) {
+                        String supplied=req.getHeader("X-Notification-Key");
+                        if(internalKey.length()<32 || supplied==null || !java.security.MessageDigest.isEqual(internalKey.getBytes(java.nio.charset.StandardCharsets.UTF_8),supplied.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {res.sendError(401);return;}
+                        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("emergencies",null,List.of(new SimpleGrantedAuthority("SERVICE_EMERGENCIES"))));
+                        chain.doFilter(req,res);return;
+                    }
                     String token=req.getHeader("Authorization");
                     if(token!=null && token.startsWith("Bearer ")) {
                         try {
